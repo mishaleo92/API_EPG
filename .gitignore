@@ -27,6 +27,11 @@ wheels/
 .env
 .env.local
 
+# Output files
+output/
+*.json
+!*.example.json
+
 # IDE
 .vscode/
 .idea/

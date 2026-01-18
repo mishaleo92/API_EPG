@@ -1,7 +1,10 @@
 """
-Модуль для роботи з API Hromada (бізнес-клімат)
+Модуль для роботи з API бізнес-клімату (Hromada getclimate)
 """
 import requests
+import json
+from datetime import datetime
+from pathlib import Path
 from typing import Optional, Dict, Any
 from config import Config
 from auth import VkursiAuth
@@ -125,3 +128,52 @@ class HromadaAPI:
             self.token = new_token
             return True
         return False
+    
+    def save_climate_to_file(self, climate_data: Dict[str, Any], year: int, 
+                            output_dir: str = "output") -> Optional[str]:
+        """
+        Зберегти дані бізнес-клімату у структурований JSON файл
+        
+        Args:
+            climate_data: Дані бізнес-клімату для збереження
+            year: Рік даних
+            output_dir: Директорія для збереження файлів (за замовчуванням "output")
+            
+        Returns:
+            Шлях до збереженого файлу або None у разі помилки
+        """
+        if not climate_data:
+            print("Помилка: немає даних для збереження")
+            return None
+        
+        try:
+            # Створюємо директорію якщо вона не існує
+            output_path = Path(output_dir)
+            output_path.mkdir(exist_ok=True)
+            
+            # Формуємо ім'я файлу з датою та роком
+            current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            filename = f"climate_year_{year}_{current_date}.json"
+            filepath = output_path / filename
+            
+            # Створюємо структурований JSON з метаданими
+            structured_data = {
+                "metadata": {
+                    "created_at": datetime.now().isoformat(),
+                    "date_created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "year": year,
+                    "description": f"Дані бізнес-клімату за {year} рік. Файл створено {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                },
+                "data": climate_data
+            }
+            
+            # Зберігаємо у JSON файл з красивим форматуванням
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(structured_data, f, ensure_ascii=False, indent=2)
+            
+            print(f"Дані збережено у файл: {filepath}")
+            return str(filepath)
+            
+        except Exception as e:
+            print(f"Помилка збереження файлу: {e}")
+            return None
