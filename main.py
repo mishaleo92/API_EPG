@@ -5,6 +5,7 @@ import sys
 from auth import VkursiAuth
 from bus_climate import HromadaAPI
 from hromada_economy import HromadaEconomyAPI
+from swot_processor import SWOTProcessor
 from config import Config
 
 
@@ -16,6 +17,7 @@ def show_menu():
     print("1. Отримати дані бізнес-клімату (getclimate)")
     print("2. Отримати список громад (GetEconomyList)")
     print("3. Отримати SWOT звіт громади (getswot)")
+    print("4. Обробити SWOT JSON файл (витягти статистику)")
     print("0. Вихід")
     print("=" * 50)
 
@@ -136,6 +138,32 @@ def get_swot_report(token: str):
         print("Помилка: не вдалося отримати SWOT звіт")
 
 
+def process_swot_file():
+    """Функція для обробки SWOT JSON файлу"""
+    print("\n--- Обробка SWOT JSON файлу ---")
+    
+    # Запитуємо шлях до файлу
+    filepath = input("Введіть шлях до SWOT JSON файлу: ").strip()
+    
+    if not filepath:
+        print("Помилка: шлях до файлу не може бути порожнім")
+        return
+    
+    # Запитуємо директорію для збереження (опціонально)
+    output_dir = input("Введіть директорію для збереження (Enter для 'output'): ").strip()
+    if not output_dir:
+        output_dir = "output"
+    
+    processor = SWOTProcessor()
+    result_file = processor.process_swot_file(filepath, output_dir)
+    
+    if result_file:
+        print(f"\nОбробка завершена успішно!")
+        print(f"Результат збережено: {result_file}")
+    else:
+        print("\nПомилка: не вдалося обробити файл")
+
+
 def main():
     """Головна функція програми"""
     print("=" * 50)
@@ -186,6 +214,8 @@ def main():
                 get_economy_list(token)
             elif choice == "3":
                 get_swot_report(token)
+            elif choice == "4":
+                process_swot_file()
             else:
                 print("Помилка: невірний вибір. Спробуйте ще раз.")
                 
